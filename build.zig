@@ -24,8 +24,8 @@ pub fn build(b: *std.Build) !void {
                     .optimize = optimize,
                 });
 
-                const input_path = b.pathJoin(&.{ "data/", stem });
-                exe.addAnonymousModule("day1", .{ .source_file = .{ .path = input_path } });
+                const input_path = b.pathJoin(&.{ "data", stem });
+                exe.addAnonymousModule(stem, .{ .source_file = .{ .path = input_path } });
                 b.installArtifact(exe);
 
                 const run_cmd = b.addRunArtifact(exe);

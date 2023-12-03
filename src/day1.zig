@@ -12,8 +12,8 @@ fn getCalibration(values: *const std.ArrayList(u8)) u32 {
 }
 
 fn getLetteredNumber(str: []const u8) ?u8 {
-    for (lettered_numbers, 0..) |number, value| {
-        if (std.mem.startsWith(u8, str, number)) return @intCast(value + 1);
+    for (lettered_numbers, 1..) |number, value| {
+        if (std.mem.startsWith(u8, str, number)) return @intCast(value);
     }
 
     return null;
@@ -37,8 +37,9 @@ pub fn main() !void {
         for (0..line.len) |i| {
             switch (line[i]) {
                 '0'...'9' => {
-                    try digits1.append(line[i] - '0');
-                    try digits2.append(line[i] - '0');
+                    const digit = try std.fmt.charToDigit(line[i], 10);
+                    try digits1.append(digit);
+                    try digits2.append(digit);
                 },
                 else => if (getLetteredNumber(line[i..])) |num| {
                     try digits2.append(num);

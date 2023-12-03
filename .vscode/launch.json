@@ -8,7 +8,7 @@
             "type": "lldb",
             "request": "launch",
             "name": "Debug",
-            "program": "${workspaceFolder}/zig-out/bin/day1",
+            "program": "${workspaceFolder}/zig-out/bin/day2",
             "args": [],
             "cwd": "${workspaceFolder}"
         }
