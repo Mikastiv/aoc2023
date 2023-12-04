@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) !void {
                 });
 
                 const input_path = b.pathJoin(&.{ "data", stem });
-                exe.addAnonymousModule(stem, .{ .source_file = .{ .path = input_path } });
+                exe.addAnonymousModule("input", .{ .source_file = .{ .path = input_path } });
                 b.installArtifact(exe);
 
                 const run_cmd = b.addRunArtifact(exe);

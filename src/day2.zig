@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const input = @embedFile("day2");
+const input = @embedFile("input");
 
 const Game = struct {
     const prefix = "Game ";

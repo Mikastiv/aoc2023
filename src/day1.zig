@@ -1,7 +1,7 @@
 const std = @import("std");
 const builtin = @import("builtin");
 
-const input = @embedFile("day1");
+const input = @embedFile("input");
 
 const lettered_numbers = [_][]const u8{
     "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
