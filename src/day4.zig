@@ -15,64 +15,29 @@ fn createNumberSet(alloc: std.mem.Allocator, str: []const u8) !std.AutoHashMap(u
 }
 
 const Card = struct {
-    id: u32,
-    winning: std.AutoHashMap(u32, void),
-    numbers: std.AutoHashMap(u32, void),
+    points: usize,
 
     fn fromStr(alloc: std.mem.Allocator, str: []const u8) !Card {
-        var split = std.mem.splitScalar(u8, str, ':');
-        var split_id = std.mem.tokenizeScalar(u8, split.first(), ' ');
-        _ = split_id.next();
-        const id = try std.fmt.parseInt(u32, split_id.next().?, 10);
+        var split = std.mem.tokenizeScalar(u8, str, ':');
+        _ = split.next();
 
-        const cards_str = split.next() orelse return error.InvalidFormat;
-        var cards = std.mem.splitScalar(u8, cards_str, '|');
+        const cards_str = split.next().?;
+        var cards = std.mem.tokenizeScalar(u8, cards_str, '|');
 
         const winning = try createNumberSet(alloc, cards.next().?);
         const numbers = try createNumberSet(alloc, cards.next().?);
 
+        var points: usize = 0;
+        var it = winning.keyIterator();
+        while (it.next()) |key| {
+            if (numbers.contains(key.*)) points += 1;
+        }
+
         return .{
-            .id = id,
-            .winning = winning,
-            .numbers = numbers,
+            .points = points,
         };
     }
-
-    fn points(self: *const Card) usize {
-        var total: usize = 0;
-        var it = self.winning.keyIterator();
-        while (it.next()) |key| {
-            if (self.numbers.getKey(key.*)) |_| {
-                if (total == 0) total = 1 else total *= 2;
-            }
-        }
-
-        return total;
-    }
-
-    fn scratchcards(self: *const Card) usize {
-        var total: usize = 0;
-        var it = self.winning.keyIterator();
-        while (it.next()) |key| {
-            if (self.numbers.getKey(key.*)) |_| {
-                total += 1;
-            }
-        }
-
-        return total;
-    }
 };
-
-fn addOneCard(stacks: *std.AutoHashMap(u32, u32), id: u32) !u32 {
-    const entry = try stacks.getOrPut(id);
-    if (entry.found_existing) {
-        entry.value_ptr.* += 1;
-    } else {
-        entry.value_ptr.* = 1;
-    }
-
-    return entry.value_ptr.*;
-}
 
 pub fn main() !void {
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
@@ -80,25 +45,24 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     const allocator = arena.allocator();
 
-    var stacks = std.AutoHashMap(u32, u32).init(allocator);
-    try stacks.ensureTotalCapacity(256);
+    var cards = [_]u32{1} ** 256;
 
     var points: usize = 0;
     var total_cards: usize = 0;
-    while (lines.next()) |line_raw| {
+    var id: u32 = 0;
+    while (lines.next()) |line_raw| : (id += 1) {
         const line = if (builtin.os.tag == .windows) std.mem.trim(u8, line_raw, "\r") else line_raw;
 
         const card = try Card.fromStr(allocator, line);
-        points += card.points();
+        points += if (card.points == 0) 0 else std.math.pow(usize, 2, card.points - 1);
 
-        const id = card.id;
-        const count = try addOneCard(&stacks, id);
+        const count = cards[id];
         total_cards += count;
 
-        const extra_card = card.scratchcards();
+        const extra_cards = card.points;
         for (0..count) |_| {
-            for (0..extra_card) |i| {
-                _ = try addOneCard(&stacks, @intCast(i + id + 1));
+            for (0..extra_cards) |i| {
+                cards[id + i + 1] += 1;
             }
         }
     }
