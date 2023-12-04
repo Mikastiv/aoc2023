@@ -16,7 +16,6 @@ const PartNumber = struct {
     value: i32,
     pos: Vec2,
     len: i32,
-    seen: bool,
 
     fn fromStr(x: i32, y: i32, str: []const u8) !Self {
         const value = try std.fmt.parseInt(i32, str, 10);
@@ -24,7 +23,6 @@ const PartNumber = struct {
             .value = value,
             .pos = .{ x, y },
             .len = @intCast(str.len),
-            .seen = false,
         };
     }
 
@@ -52,45 +50,34 @@ pub fn main() !void {
         const line = if (builtin.os.tag == .windows) std.mem.trim(u8, line_raw, "\r") else line_raw;
 
         var x: i32 = 0;
-        var skip = false;
-
         while (x < line.len) : (x += 1) {
             const char = line[@intCast(x)];
             const is_digit = std.ascii.isDigit(char);
             const is_symbol = !is_digit and char != '.';
 
             if (is_digit) {
-                if (skip) continue;
-
-                skip = true;
                 const substr = line[@intCast(x)..];
                 const number_end = std.mem.indexOfNone(u8, substr, "0123456789") orelse substr.len;
                 const part_number = try PartNumber.fromStr(x, y, substr[0..number_end]);
                 try numbers.append(part_number);
+                x += @as(i32, @intCast(number_end)) - 1;
                 continue;
             }
 
-            skip = false;
             if (is_symbol) try symbols.append(.{ .pos = .{ x, y }, .char = char });
         }
     }
 
-    var sum: i32 = 0;
-    for (numbers.items) |*num| {
-        for (symbols.items) |sym| {
-            if (!num.seen and num.isAdjacent(sym.pos)) {
-                num.seen = true;
-                sum += num.value;
-            }
-        }
-    }
-
+    var part_sum: i32 = 0;
     var ratio_sum: i32 = 0;
     for (symbols.items) |sym| {
         var part_count: i32 = 0;
         var product: i32 = 1;
         for (numbers.items) |num| {
-            if (sym.char == '*' and num.isAdjacent(sym.pos)) {
+            if (!num.isAdjacent(sym.pos)) continue;
+
+            part_sum += num.value;
+            if (sym.char == '*') {
                 part_count += 1;
                 product *= num.value;
             }
@@ -99,6 +86,6 @@ pub fn main() !void {
         if (part_count == 2) ratio_sum += product;
     }
 
-    std.debug.print("part 1: {d}\n", .{sum});
+    std.debug.print("part 1: {d}\n", .{part_sum});
     std.debug.print("part 2: {d}\n", .{ratio_sum});
 }
