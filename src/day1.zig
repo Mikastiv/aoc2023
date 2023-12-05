@@ -1,5 +1,5 @@
 const std = @import("std");
-const builtin = @import("builtin");
+const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -32,7 +32,7 @@ pub fn main() !void {
     var calibration2: u32 = 0;
 
     while (lines.next()) |line_raw| {
-        const line = if (builtin.os.tag == .windows) std.mem.trim(u8, line_raw, "\r") else line_raw;
+        const line = utils.windowsTrim(line_raw);
 
         for (0..line.len) |i| {
             switch (line[i]) {

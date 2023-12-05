@@ -1,5 +1,5 @@
 const std = @import("std");
-const builtin = @import("builtin");
+const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -45,7 +45,7 @@ pub fn main() !void {
     var total_cards: usize = 0;
     var id: u32 = 0;
     while (lines.next()) |line_raw| : (id += 1) {
-        const line = if (builtin.os.tag == .windows) std.mem.trim(u8, line_raw, "\r") else line_raw;
+        const line = utils.windowsTrim(line_raw);
 
         const points = try getPoints(allocator, line);
         total_points += if (points == 0) 0 else std.math.pow(usize, 2, points - 1);

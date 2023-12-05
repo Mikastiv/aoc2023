@@ -13,6 +13,7 @@ pub fn build(b: *std.Build) !void {
         switch (entry.kind) {
             .file => {
                 if (!std.mem.endsWith(u8, entry.name, ".zig")) continue;
+                if (!std.mem.startsWith(u8, entry.name, "day")) continue;
 
                 const stem = std.fs.path.stem(entry.name);
 
