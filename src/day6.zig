@@ -3,7 +3,7 @@ const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
-const ValuesArray = std.BoundedArray(i64, 8);
+const ValuesArray = std.BoundedArray(u64, 8);
 
 fn parseNumberList(line: []const u8) !ValuesArray {
     const str = utils.windowsTrim(line);
@@ -15,14 +15,14 @@ fn parseNumberList(line: []const u8) !ValuesArray {
 
     var it = std.mem.tokenizeScalar(u8, parts.next().?, ' ');
     while (it.next()) |num_str| {
-        const num = try std.fmt.parseInt(i64, num_str, 10);
+        const num = try std.fmt.parseInt(u64, num_str, 10);
         try out.append(num);
     }
 
     return out;
 }
 
-fn parseSingleNumber(alloc: std.mem.Allocator, line: []const u8) !i64 {
+fn parseSingleNumber(alloc: std.mem.Allocator, line: []const u8) !u64 {
     const str = utils.windowsTrim(line);
 
     var parts = std.mem.tokenizeScalar(u8, str, ':');
@@ -37,27 +37,17 @@ fn parseSingleNumber(alloc: std.mem.Allocator, line: []const u8) !i64 {
 
     const number_str = try std.mem.concat(alloc, u8, number_parts.constSlice());
 
-    return std.fmt.parseInt(i64, number_str, 10);
+    return std.fmt.parseInt(u64, number_str, 10);
 }
 
-fn solveRace(time: i64, distance: i64) i64 {
-    const mid = @divFloor(time, 2);
+fn solveRace(time: u64, distance: u64) u64 {
+    var solutions: u64 = 0;
 
-    var i = mid;
-    const low = blk: while (mid > 0) : (i -= 1) {
-        if (!(i * (time - i) > distance)) break :blk i + 1;
-    } else {
-        break :blk 1;
-    };
+    for (0..time) |t| {
+        if (t * (time - t) > distance) solutions += 1;
+    }
 
-    i = mid;
-    const high = blk: while (mid < time) : (i += 1) {
-        if (!(i * (time - i) > distance)) break :blk i;
-    } else {
-        break :blk time;
-    };
-
-    return high - low;
+    return solutions;
 }
 
 pub fn main() !void {
@@ -75,7 +65,7 @@ pub fn main() !void {
     const single_time = try parseSingleNumber(alloc, time_str);
     const single_distance = try parseSingleNumber(alloc, dist_str);
 
-    var product: i64 = 1;
+    var product: u64 = 1;
     for (times.constSlice(), distances.constSlice()) |time, dist| {
         product *= solveRace(time, dist);
     }
