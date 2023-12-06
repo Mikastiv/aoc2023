@@ -50,6 +50,28 @@ fn solveRace(time: u64, distance: u64) u64 {
     return solutions;
 }
 
+fn quadraticSolve(time: u64, distance: u64) u64 {
+    // travel time (t) = race time (r) - time pressed (p)
+    // traveled distance (d) = travel time (t) * time pressed (p);
+    // t = r - p
+    // d = t * p
+    //
+    // substitute
+    // d = (r - p) * p
+    // d = pr - p2
+    // p2 - pr + d = 0
+
+    const r: f64 = @floatFromInt(time);
+    const d: f64 = @floatFromInt(distance);
+
+    // a = 1, b = r, c = d
+    const discriminant_root = @sqrt(std.math.pow(f64, r, 2) - 4.0 * d);
+    const high: u64 = @intFromFloat((-r + discriminant_root) / 2.0);
+    const low: u64 = @intFromFloat((-r - discriminant_root) / 2.0);
+
+    return high - low;
+}
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     const alloc = arena.allocator();
@@ -67,10 +89,10 @@ pub fn main() !void {
 
     var product: u64 = 1;
     for (times.constSlice(), distances.constSlice()) |time, dist| {
-        product *= solveRace(time, dist);
+        product *= quadraticSolve(time, dist);
     }
 
-    const big_race = solveRace(single_time, single_distance);
+    const big_race = quadraticSolve(single_time, single_distance);
 
     std.debug.print("part 1: {d}\n", .{product});
     std.debug.print("part 2: {d}\n", .{big_race});
