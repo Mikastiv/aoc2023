@@ -26,7 +26,7 @@ const Category = enum {
 
 const Interval = struct {
     start: u64,
-    len: u64,
+    end: u64,
 };
 
 const Range = struct {
@@ -56,20 +56,16 @@ const Range = struct {
         return self.dst + diff;
     }
 
-    fn interval(self: Range, n: u64) ?Interval {
-        if (!self.mappable(n)) return null;
-
-        const diff = n - self.src;
-        return .{
-            .start = n,
-            .len = self.len - diff,
-        };
+    fn mappableInterval(self: Range, interval: Interval) bool {
+        return self.src <= interval.end and self.src + self.len > interval.start;
     }
 
-    fn mapInterval(self: Range, i: Interval) Interval {
+    fn mapInterval(self: Range, interval: Interval) Interval {
+        const len = interval.end - interval.start;
+        const diff = interval.start - self.src;
         return .{
-            .start = self.dst,
-            .len = i.len,
+            .start = self.dst + diff,
+            .end = self.dst + diff + len,
         };
     }
 };
@@ -93,7 +89,45 @@ const Map = struct {
         }
         return value;
     }
+
+    fn mapInterval(self: *const @This(), alloc: std.mem.Allocator, interval: Interval) ![]Interval {
+        var intervals = std.ArrayList(Interval).init(alloc);
+        defer intervals.deinit();
+
+        var mapped_intervals = std.ArrayList(Interval).init(alloc);
+
+        for (self.ranges.constSlice()) |range| {
+            if (range.mappableInterval(interval)) {
+                const section = Interval{
+                    .start = @max(range.src, interval.start),
+                    .end = @min(range.src + range.len, interval.end),
+                };
+                try intervals.append(section);
+                try mapped_intervals.append(range.mapInterval(section));
+            }
+        }
+
+        std.sort.insertion(Interval, intervals.items, {}, intervalCompare);
+
+        var curr: u64 = interval.start;
+        for (intervals.items) |int| {
+            if (curr < int.start) {
+                try mapped_intervals.append(.{ .start = curr, .end = int.start });
+            }
+            curr = int.end;
+        }
+
+        if (mapped_intervals.items.len == 0) {
+            try mapped_intervals.append(.{ .start = interval.start, .end = interval.end });
+        }
+
+        return mapped_intervals.toOwnedSlice();
+    }
 };
+
+fn intervalCompare(_: void, lhs: Interval, rhs: Interval) bool {
+    return lhs.start < rhs.start;
+}
 
 const SeedArray = std.BoundedArray(u64, 32);
 
@@ -116,7 +150,6 @@ fn parseSeeds(str: []const u8) !SeedArray {
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     const alloc = arena.allocator();
-    _ = alloc;
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
@@ -125,6 +158,7 @@ pub fn main() !void {
 
     var category: ?Category = null;
 
+    // parse input
     while (lines.next()) |line_raw| {
         const line = utils.windowsTrim(line_raw);
 
@@ -146,6 +180,7 @@ pub fn main() !void {
         }
     }
 
+    // part 1
     var smallest_location: u32 = std.math.maxInt(u32);
     for (seeds.constSlice()) |seed| {
         var value = seed;
@@ -158,56 +193,35 @@ pub fn main() !void {
         smallest_location = @min(smallest_location, value);
     }
 
-    // var intervals = std.ArrayList(Interval).init(alloc);
-    // var temp = std.ArrayList(Interval).init(alloc);
+    // part 2
+    var intervals = std.ArrayList(Interval).init(alloc);
+    var temp = std.ArrayList(Interval).init(alloc);
 
-    // var i: usize = 0;
-    // while (i < seeds.len) : (i += 2) {
-    //     const seed_start = seeds.constSlice()[i];
-    //     const len = seeds.constSlice()[i + 1];
-    //     try intervals.append(.{ .start = seed_start, .len = len });
-    // }
+    // create seeds intervals
+    var i: usize = 0;
+    while (i < seeds.len) : (i += 2) {
+        const seed_start = seeds.constSlice()[i];
+        const len = seeds.constSlice()[i + 1];
+        try intervals.append(.{ .start = seed_start, .end = seed_start + len });
+    }
 
-    // var it = maps.iterator();
-    // _ = it.next();
-    // while (it.next()) |map| {
-    //     for (intervals.items) |int| {
-    //         var curr = int.start;
-    //         while (curr < int.start + int.len) {
-    //             for (map.value.constSlice()) |range| {
-    //                 const mappable_range = range.interval(curr);
-    //                 if (mappable_range == null) continue;
+    // remap intervals
+    var it = maps.iterator();
+    while (it.next()) |map| {
+        for (intervals.items) |int| {
+            const new_intervals = try map.value.mapInterval(alloc, int);
+            defer alloc.free(new_intervals);
+            try temp.appendSlice(new_intervals);
+        }
+        intervals.clearAndFree();
+        intervals = std.ArrayList(Interval).fromOwnedSlice(alloc, try temp.toOwnedSlice());
+    }
 
-    //                 std.debug.print("mapped: {any}\n", .{mappable_range.?});
-
-    //                 curr += mappable_range.?.len;
-    //                 try temp.append(range.mapInterval(mappable_range.?));
-    //                 break;
-    //             } else {
-    //                 loop: for (curr..int.start + int.len) |n| {
-    //                     for (map.value.constSlice()) |range| {
-    //                         if (range.mappable(n)) {
-    //                             try temp.append(.{ .start = curr, .len = n - curr });
-    //                             curr = n;
-    //                             break :loop;
-    //                         }
-    //                     }
-    //                 } else {
-    //                     try temp.append(.{ .start = curr, .len = curr - (int.start + int.len) });
-    //                     curr += int.len;
-    //                 }
-    //             }
-    //         }
-    //     }
-
-    //     intervals = std.ArrayList(Interval).fromOwnedSlice(alloc, try temp.toOwnedSlice());
-    // }
-
-    // var smallest_location_2: u32 = std.math.maxInt(u32);
-    // for (intervals.items) |int| {
-    //     smallest_location_2 = @min(smallest_location_2, int.start);
-    // }
+    var smallest_location_2: u32 = std.math.maxInt(u32);
+    for (intervals.items) |int| {
+        smallest_location_2 = @min(smallest_location_2, int.start);
+    }
 
     std.debug.print("part 1: {d}\n", .{smallest_location});
-    // std.debug.print("part 2: {d}\n", .{smallest_location_2});
+    std.debug.print("part 2: {d}\n", .{smallest_location_2});
 }
