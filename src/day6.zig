@@ -64,36 +64,41 @@ fn quadraticSolve(time: u64, distance: u64) u64 {
     const r: f64 = @floatFromInt(time);
     const d: f64 = @floatFromInt(distance);
 
-    // a = 1, b = r, c = d
+    // a = 1, b = -r, c = d
     const discriminant_root = @sqrt(std.math.pow(f64, r, 2) - 4.0 * d);
-    const high: u64 = @intFromFloat((-r + discriminant_root) / 2.0);
-    const low: u64 = @intFromFloat((-r - discriminant_root) / 2.0);
+    const high = (r + discriminant_root) / 2.0;
+    const low = (r - discriminant_root) / 2.0;
 
-    return high - low;
+    return @as(u64, @intFromFloat(high)) - @as(u64, @intFromFloat(low));
 }
 
 pub fn main() !void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    const alloc = arena.allocator();
+    @setEvalBranchQuota(2000);
 
-    var lines = std.mem.tokenizeScalar(u8, input, '\n');
+    const part1, const part2 = comptime blk: {
+        var buffer: [256]u8 = undefined;
+        var fixed = std.heap.FixedBufferAllocator.init(&buffer);
+        const alloc = fixed.allocator();
 
-    const time_str = lines.next().?;
-    const dist_str = lines.next().?;
+        var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
-    const times = try parseNumberList(time_str);
-    const distances = try parseNumberList(dist_str);
+        const time_str = lines.next().?;
+        const dist_str = lines.next().?;
 
-    const single_time = try parseSingleNumber(alloc, time_str);
-    const single_distance = try parseSingleNumber(alloc, dist_str);
+        const times = try parseNumberList(time_str);
+        const distances = try parseNumberList(dist_str);
 
-    var product: u64 = 1;
-    for (times.constSlice(), distances.constSlice()) |time, dist| {
-        product *= quadraticSolve(time, dist);
-    }
+        const single_time = try parseSingleNumber(alloc, time_str);
+        const single_distance = try parseSingleNumber(alloc, dist_str);
 
-    const big_race = quadraticSolve(single_time, single_distance);
+        var product: u64 = 1;
+        for (times.constSlice(), distances.constSlice()) |time, dist| {
+            product *= quadraticSolve(time, dist);
+        }
 
-    std.debug.print("part 1: {d}\n", .{product});
-    std.debug.print("part 2: {d}\n", .{big_race});
+        break :blk .{ product, quadraticSolve(single_time, single_distance) };
+    };
+
+    std.debug.print("part 1: {d}\n", .{part1});
+    std.debug.print("part 2: {d}\n", .{part2});
 }
