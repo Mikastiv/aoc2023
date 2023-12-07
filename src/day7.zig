@@ -3,41 +3,6 @@ const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
-const Card = enum(u32) {
-    two = 1,
-    three,
-    four,
-    five,
-    six,
-    seven,
-    eight,
-    nine,
-    ten,
-    jack,
-    queen,
-    king,
-    ace,
-
-    fn fromChar(char: u8) @This() {
-        return switch (char) {
-            '2' => .two,
-            '3' => .three,
-            '4' => .four,
-            '5' => .five,
-            '6' => .six,
-            '7' => .seven,
-            '8' => .eight,
-            '9' => .nine,
-            'T' => .ten,
-            'J' => .jack,
-            'Q' => .queen,
-            'K' => .king,
-            'A' => .ace,
-            else => unreachable,
-        };
-    }
-};
-
 const Hand = struct {
     const Strength = enum(u32) {
         high_card,
@@ -49,23 +14,18 @@ const Hand = struct {
         five_of_a_kind,
     };
 
-    cards: [5]Card,
+    cards: [5]u8,
     bid: u64,
 
     fn fromStr(str: []const u8) !@This() {
         var it = std.mem.tokenizeScalar(u8, str, ' ');
-        const cards_str = it.next().?;
+        const cards = it.next().?;
         const bid_str = it.next().?;
-
-        var cards: [5]Card = undefined;
-        for (cards_str, 0..) |char, i| {
-            cards[i] = Card.fromChar(char);
-        }
 
         const bid = try std.fmt.parseInt(u64, bid_str, 10);
 
         return .{
-            .cards = cards,
+            .cards = cards[0..5].*,
             .bid = bid,
         };
     }
@@ -75,7 +35,7 @@ const Hand = struct {
         var fixed = std.heap.FixedBufferAllocator.init(&buffer);
         const alloc = fixed.allocator();
 
-        var hash_map = std.AutoHashMap(Card, u32).init(alloc);
+        var hash_map = std.AutoHashMap(u8, u32).init(alloc);
 
         for (self.cards) |card| {
             const entry = try hash_map.getOrPut(card);
@@ -86,7 +46,7 @@ const Hand = struct {
         }
 
         const joker_count = if (use_jokers) blk: {
-            const entry = hash_map.fetchRemove(.jack) orelse break :blk 0;
+            const entry = hash_map.fetchRemove('J') orelse break :blk 0;
             break :blk entry.value;
         } else 0;
 
@@ -121,18 +81,21 @@ const Hand = struct {
     }
 
     fn compare(use_jokers: bool, a: @This(), b: @This()) bool {
+        const card_strength = "_23456789TJQKA";
+        const j_strength = comptime std.mem.indexOfScalar(u8, card_strength, 'J').?;
+
         const strength_a: u32 = @intFromEnum(a.strength(use_jokers) catch unreachable);
         const strength_b: u32 = @intFromEnum(b.strength(use_jokers) catch unreachable);
 
         if (strength_a != strength_b) return strength_a < strength_b;
 
         for (0..a.cards.len) |i| {
-            var card_a: u32 = @intFromEnum(a.cards[i]);
-            var card_b: u32 = @intFromEnum(b.cards[i]);
+            var card_a = std.mem.indexOfScalar(u8, card_strength, a.cards[i]).?;
+            var card_b = std.mem.indexOfScalar(u8, card_strength, b.cards[i]).?;
 
             if (use_jokers) {
-                if (card_a == @intFromEnum(Card.jack)) card_a = 0;
-                if (card_b == @intFromEnum(Card.jack)) card_b = 0;
+                if (card_a == j_strength) card_a = 0;
+                if (card_b == j_strength) card_b = 0;
             }
 
             if (card_a != card_b) return card_a < card_b;
