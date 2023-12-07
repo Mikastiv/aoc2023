@@ -70,7 +70,7 @@ const Hand = struct {
         };
     }
 
-    fn strength(self: @This(), use_jokers: bool) Strength {
+    fn strength(self: @This(), use_jokers: bool) !Strength {
         var buffer: [512]u8 = undefined;
         var fixed = std.heap.FixedBufferAllocator.init(&buffer);
         const alloc = fixed.allocator();
@@ -78,88 +78,51 @@ const Hand = struct {
         var hash_map = std.AutoHashMap(Card, u32).init(alloc);
 
         for (self.cards) |card| {
-            const entry = hash_map.getOrPut(card) catch unreachable;
+            const entry = try hash_map.getOrPut(card);
             if (entry.found_existing)
                 entry.value_ptr.* += 1
             else
                 entry.value_ptr.* = 1;
         }
 
-        const joker_count = blk: {
-            const ptr = hash_map.getPtr(.jack) orelse break :blk 0;
-            break :blk ptr.*;
-        };
+        const joker_count = if (use_jokers) blk: {
+            const entry = hash_map.fetchRemove(.jack) orelse break :blk 0;
+            break :blk entry.value;
+        } else 0;
 
         var entries = std.ArrayList(u32).init(alloc);
         var it = hash_map.iterator();
         while (it.next()) |entry| {
-            entries.append(entry.value_ptr.*) catch unreachable;
+            try entries.append(entry.value_ptr.*);
         }
 
         std.sort.insertion(u32, entries.items, {}, std.sort.desc(u32));
 
-        if (entries.items.len == 1) return .five_of_a_kind;
-
-        if (use_jokers) {
-            if (entries.items.len == 5) {
-                if (joker_count > 0)
-                    return .one_pair
-                else
-                    return .high_card;
-            }
-
-            if (entries.items.len == 4) {
-                if (joker_count > 0)
-                    return .three_of_a_kind
-                else
-                    return .one_pair;
-            }
-
-            if (entries.items.len == 3) {
-                if (entries.items[0] == 3) {
-                    if (joker_count > 0)
-                        return .four_of_a_kind
-                    else
-                        return .three_of_a_kind;
-                } else {
-                    if (joker_count == 2) return .four_of_a_kind;
-                    if (joker_count == 1) return .full_house;
-                    return .two_pair;
-                }
-            }
-
-            if (entries.items[0] == 4) {
-                if (joker_count > 0)
-                    return .five_of_a_kind
-                else
-                    return .four_of_a_kind;
-            } else {
-                if (joker_count > 0)
-                    return .five_of_a_kind
-                else
-                    return .full_house;
-            }
-        } else {
-            if (entries.items.len == 5) return .high_card;
-            if (entries.items.len == 4) return .one_pair;
-
-            if (entries.items.len == 3) {
-                if (entries.items[0] == 3)
-                    return .three_of_a_kind
-                else
-                    return .two_pair;
-            }
-
-            if (entries.items[0] == 4)
-                return .four_of_a_kind
-            else
-                return .full_house;
+        if (use_jokers and joker_count > 0) {
+            if (joker_count == 5) try entries.append(0);
+            entries.items[0] += joker_count;
         }
+
+        if (entries.items.len == 1) return .five_of_a_kind;
+        if (entries.items.len == 5) return .high_card;
+        if (entries.items.len == 4) return .one_pair;
+
+        if (entries.items.len == 3) {
+            if (entries.items[0] == 3)
+                return .three_of_a_kind
+            else
+                return .two_pair;
+        }
+
+        if (entries.items[0] == 4)
+            return .four_of_a_kind
+        else
+            return .full_house;
     }
 
     fn compare(use_jokers: bool, a: @This(), b: @This()) bool {
-        const strength_a: u32 = @intFromEnum(a.strength(use_jokers));
-        const strength_b: u32 = @intFromEnum(b.strength(use_jokers));
+        const strength_a: u32 = @intFromEnum(a.strength(use_jokers) catch unreachable);
+        const strength_b: u32 = @intFromEnum(b.strength(use_jokers) catch unreachable);
 
         if (strength_a != strength_b) return strength_a < strength_b;
 
@@ -171,6 +134,7 @@ const Hand = struct {
                 if (card_a == @intFromEnum(Card.jack)) card_a = 0;
                 if (card_b == @intFromEnum(Card.jack)) card_b = 0;
             }
+
             if (card_a != card_b) return card_a < card_b;
         }
 
