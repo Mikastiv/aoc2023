@@ -51,9 +51,9 @@ const Hand = struct {
         } else 0;
 
         var entries = std.ArrayList(u32).init(alloc);
-        var it = hash_map.iterator();
-        while (it.next()) |entry| {
-            try entries.append(entry.value_ptr.*);
+        var it = hash_map.valueIterator();
+        while (it.next()) |value| {
+            try entries.append(value.*);
         }
 
         std.sort.insertion(u32, entries.items, {}, std.sort.desc(u32));
