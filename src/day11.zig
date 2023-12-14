@@ -53,10 +53,6 @@ pub fn main() !void {
         try map.append(row);
     }
 
-    for (map.items) |line| {
-        std.debug.print("{s}\n", .{line});
-    }
-
     var galaxies = std.ArrayList(Pos).init(alloc);
     var empty_rows = std.ArrayList(usize).init(alloc);
     var empty_cols = std.ArrayList(usize).init(alloc);
