@@ -60,9 +60,7 @@ fn load(map: []const []const u8) u64 {
 
 fn mapHash(map: []const []const u8) u64 {
     var hasher = std.hash.Wyhash.init(0);
-    for (map) |line| {
-        hasher.update(line);
-    }
+    std.hash.autoHashStrat(&hasher, map, .DeepRecursive);
     return hasher.final();
 }
 
