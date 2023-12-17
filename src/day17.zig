@@ -114,10 +114,7 @@ fn dijkstra(alloc: std.mem.Allocator, map: []const []const u8, min: usize, max: 
         }
 
         const entry = try seen.getOrPut(.{ .dir = s.dir, .pos = s.pos, .straight = s.straight });
-        if (entry.found_existing) {
-            if (entry.value_ptr.* <= s.cost)
-                continue;
-        }
+        if (entry.found_existing and entry.value_ptr.* <= s.cost) continue;
 
         entry.value_ptr.* = s.cost;
 
