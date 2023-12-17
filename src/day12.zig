@@ -125,6 +125,6 @@ pub fn main() !void {
     const part1 = try solve(alloc, records1.items);
     const part2 = try solve(alloc, records2.items);
 
-    std.debug.print("part1 {d}\n", .{part1});
-    std.debug.print("part2 {d}\n", .{part2});
+    std.debug.print("part 1: {d}\n", .{part1});
+    std.debug.print("part 2: {d}\n", .{part2});
 }

@@ -54,6 +54,6 @@ pub fn main() !void {
         digits2.clearRetainingCapacity();
     }
 
-    std.debug.print("part1: {d}\n", .{calibration1});
-    std.debug.print("part2: {d}\n", .{calibration2});
+    std.debug.print("part 1: {d}\n", .{calibration1});
+    std.debug.print("part 2: {d}\n", .{calibration2});
 }

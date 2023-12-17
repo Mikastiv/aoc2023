@@ -94,6 +94,6 @@ pub fn main() !void {
         part2 += getDistance(pair.a, pair.b, empty_rows.items, empty_cols.items, 1000000);
     }
 
-    std.debug.print("part1: {d}\n", .{part1});
-    std.debug.print("part2: {d}\n", .{part2});
+    std.debug.print("part 1: {d}\n", .{part1});
+    std.debug.print("part 2: {d}\n", .{part2});
 }
