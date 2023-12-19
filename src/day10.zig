@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -119,9 +118,7 @@ pub fn main() !void {
     var map = std.ArrayList([]u8).init(alloc);
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         const row = try alloc.dupe(u8, line);
         try map.append(row);
     }

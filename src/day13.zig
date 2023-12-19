@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -48,7 +47,6 @@ pub fn main() !void {
 
     var patterns = std.ArrayList([]const u64).init(alloc);
     var patterns_t = std.ArrayList([]const u64).init(alloc);
-    // won't work with CRLF files
     var patterns_it = std.mem.tokenizeSequence(u8, input, "\n\n");
     while (patterns_it.next()) |pattern| {
         var lines = std.mem.tokenizeScalar(u8, pattern, '\n');

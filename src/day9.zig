@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -52,8 +51,7 @@ pub fn main() !void {
     var numbers = std.ArrayList(i64).init(alloc);
     var sum1: i64 = 0;
     var sum2: i64 = 0;
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
+    while (lines.next()) |line| {
         var it = std.mem.tokenizeScalar(u8, line, ' ');
         while (it.next()) |str| {
             try numbers.append(try std.fmt.parseInt(i64, str, 10));

@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -132,11 +131,9 @@ fn intervalCompare(_: void, lhs: Interval, rhs: Interval) bool {
 const SeedArray = std.BoundedArray(u64, 32);
 
 fn parseSeeds(str: []const u8) !SeedArray {
-    const line = utils.windowsTrim(str);
-
     var seeds = try SeedArray.init(0);
 
-    var parts = std.mem.tokenizeScalar(u8, line, ':');
+    var parts = std.mem.tokenizeScalar(u8, str, ':');
     _ = parts.next();
 
     var numbers = std.mem.tokenizeScalar(u8, parts.next().?, ' ');
@@ -159,9 +156,7 @@ pub fn main() !void {
     var category: ?Category = null;
 
     // parse input
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         var parts = std.mem.tokenizeScalar(u8, line, ':');
         if (std.mem.indexOfScalar(u8, line, ':') != null) {
             const ident = parts.next().?;

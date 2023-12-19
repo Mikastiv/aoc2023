@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -51,9 +50,7 @@ pub fn main() !void {
 
     var sum: u32 = 0;
     var power: u32 = 0;
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         const game = try Game.fromStr(line);
         if (game.red <= 12 and game.green <= 13 and game.blue <= 14) {
             sum += game.id;

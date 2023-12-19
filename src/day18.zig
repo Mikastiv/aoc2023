@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -100,9 +99,7 @@ pub fn main() !void {
     var boundary_points2: u64 = 0;
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         const op1 = try Op.fromStrPart1(line);
         const op2 = try Op.fromStrPart2(line);
 

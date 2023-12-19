@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -46,9 +45,7 @@ pub fn main() !void {
     var numbers = std.ArrayList(PartNumber).init(allocator);
 
     var y: i32 = 0;
-    while (lines.next()) |line_raw| : (y += 1) {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| : (y += 1) {
         var x: i32 = 0;
         while (x < line.len) : (x += 1) {
             const char = line[@intCast(x)];

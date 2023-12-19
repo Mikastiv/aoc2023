@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -44,9 +43,7 @@ pub fn main() !void {
     var total_points: usize = 0;
     var total_cards: usize = 0;
     var id: u32 = 0;
-    while (lines.next()) |line_raw| : (id += 1) {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| : (id += 1) {
         const points = try getPoints(allocator, line);
         total_points += if (points == 0) 0 else std.math.pow(usize, 2, points - 1);
 

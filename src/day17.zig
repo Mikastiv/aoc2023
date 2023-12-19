@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -114,7 +113,7 @@ fn dijkstra(alloc: std.mem.Allocator, map: []const []const u8, min: usize, max: 
         }
 
         const entry = try seen.getOrPut(.{ .dir = s.dir, .pos = s.pos, .straight = s.straight });
-        if (entry.found_existing and entry.value_ptr.* <= s.cost) continue;
+        if (entry.found_existing) continue;
 
         entry.value_ptr.* = s.cost;
 
@@ -134,8 +133,7 @@ pub fn main() !void {
 
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
     var map = std.ArrayList([]const u8).init(alloc);
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
+    while (lines.next()) |line| {
         const copy = try alloc.dupe(u8, line);
         for (copy) |*c| {
             c.* = try std.fmt.charToDigit(c.*, 10);

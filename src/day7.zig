@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -113,9 +112,7 @@ pub fn main() !void {
 
     var hands = std.ArrayList(Hand).init(alloc);
 
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         const hand = try Hand.fromStr(line);
         try hands.append(hand);
     }

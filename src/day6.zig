@@ -1,16 +1,13 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
 const ValuesArray = std.BoundedArray(u64, 8);
 
 fn parseNumberList(line: []const u8) !ValuesArray {
-    const str = utils.windowsTrim(line);
-
     var out = try ValuesArray.init(0);
 
-    var parts = std.mem.tokenizeScalar(u8, str, ':');
+    var parts = std.mem.tokenizeScalar(u8, line, ':');
     _ = parts.next();
 
     var it = std.mem.tokenizeScalar(u8, parts.next().?, ' ');
@@ -23,9 +20,7 @@ fn parseNumberList(line: []const u8) !ValuesArray {
 }
 
 fn parseSingleNumber(alloc: std.mem.Allocator, line: []const u8) !u64 {
-    const str = utils.windowsTrim(line);
-
-    var parts = std.mem.tokenizeScalar(u8, str, ':');
+    var parts = std.mem.tokenizeScalar(u8, line, ':');
     _ = parts.next();
 
     var number_parts = try std.BoundedArray([]const u8, 8).init(0);

@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -31,9 +30,7 @@ pub fn main() !void {
     var calibration1: u32 = 0;
     var calibration2: u32 = 0;
 
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         for (0..line.len) |i| {
             switch (line[i]) {
                 '0'...'9' => {

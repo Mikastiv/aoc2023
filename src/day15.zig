@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -60,7 +59,7 @@ pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     const alloc = arena.allocator();
 
-    var steps = std.mem.tokenizeScalar(u8, std.mem.trim(u8, input, "\r\n"), ',');
+    var steps = std.mem.tokenizeScalar(u8, std.mem.trim(u8, input, "\n"), ',');
     var boxes = std.AutoHashMap(usize, std.ArrayList(Lens)).init(alloc);
     var part1: usize = 0;
     while (steps.next()) |step| {

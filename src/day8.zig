@@ -1,5 +1,4 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 
 const input = @embedFile("input");
 
@@ -31,16 +30,14 @@ pub fn main() !void {
     var lines = std.mem.tokenizeScalar(u8, input, '\n');
 
     var instructions = Instructions{
-        .list = utils.windowsTrim(lines.next().?),
+        .list = lines.next().?,
         .current = 0,
     };
 
     var nodes = std.StringHashMap(Node).init(alloc);
     var ghost_nodes = std.ArrayList([]const u8).init(alloc);
 
-    while (lines.next()) |line_raw| {
-        const line = utils.windowsTrim(line_raw);
-
+    while (lines.next()) |line| {
         var parts = std.mem.tokenizeSequence(u8, line, " = ");
 
         const name = parts.next().?;
